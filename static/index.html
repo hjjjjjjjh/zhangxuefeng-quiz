@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>张雪峰 · 智能志愿百科</title>
+<meta name="description" content="用张雪峰的思维框架分析高考志愿、考研规划和就业方向。联网搜索最新数据，职业倾向测评帮你找对方向。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>峰</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   张雪峰智能志愿百科 · 东北工业朋克
+   Aesthetic: raw concrete + safety yellow + blueprint grid
+   ═══════════════════════════════════════════════════════ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --concrete:#1a1a1e;--concrete-light:#242428;--steel:#2e2e34;
+  --yellow:#F5A623;--orange:#E85D26;--safety:#FFD23F;
+  --blue:#4A90D9;--green:#2ECC71;--red:#E74C3C;
+  --text:#D4D0C8;--text-bright:#F0EDE6;--text-dim:#7A7670;
+  --grid:rgba(245,166,35,0.04);
+  --mono:'Space Mono','Courier New',monospace;
+  --sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  --r:4px;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:var(--sans);background:var(--concrete);color:var(--text);
+  min-height:100vh;overflow-x:hidden;position:relative;
+}
+
+/* ── Blueprint grid background ───────────────────────── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse at 30% 20%, rgba(245,166,35,0.06) 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 80%, rgba(74,144,217,0.04) 0%, transparent 50%);
+}
+
+/* ── Noise grain overlay ─────────────────────────────── */
+.grain{
+  position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:0.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Layout ──────────────────────────────────────────── */
+.app{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:0 20px 40px}
+
+/* ── Header ──────────────────────────────────────────── */
+.header{
+  padding:48px 0 32px;border-bottom:2px solid var(--yellow);
+  margin-bottom:24px;position:relative;
+}
+.header::after{
+  content:'';position:absolute;bottom:-2px;left:0;width:120px;height:2px;
+  background:var(--orange);
+}
+.header .tag{
+  font-family:var(--mono);font-size:.7rem;color:var(--yellow);
+  letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.header .tag::before{
+  content:'';width:8px;height:8px;background:var(--yellow);
+  display:inline-block;animation:blink-dot 2s infinite;
+}
+@keyframes blink-dot{0%,100%{opacity:1}50%{opacity:.3}}
+.header h1{
+  font-size:2.8rem;font-weight:900;color:var(--text-bright);
+  letter-spacing:4px;line-height:1.1;
+}
+.header h1 span{color:var(--yellow)}
+.header .sub{
+  font-family:var(--mono);font-size:.78rem;color:var(--text-dim);
+  margin-top:10px;letter-spacing:1px;
+}
+.header .quote{
+  margin-top:14px;padding:12px 16px;
+  border-left:3px solid var(--orange);
+  background:rgba(232,93,38,0.06);
+  font-size:.88rem;color:var(--text);line-height:1.6;
+  font-style:italic;
+}
+
+/* ── Tab bar (industrial switch) ─────────────────────── */
+.tabs{
+  display:flex;gap:0;margin-bottom:24px;
+  border:1px solid var(--steel);background:var(--concrete-light);
+}
+.tab{
+  flex:1;padding:14px 0;text-align:center;cursor:pointer;
+  font-family:var(--mono);font-size:.8rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--text-dim);background:transparent;border:none;
+  transition:all .2s;position:relative;
+}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.02)}
+.tab.active{
+  color:var(--concrete);background:var(--yellow);
+}
+.tab.active::after{
+  content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);
+  width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;
+  border-bottom:6px solid var(--concrete);
+}
+
+/* ── Panels ──────────────────────────────────────────── */
+.panel{display:none}
+.panel.active{display:flex;flex-direction:column;min-height:60vh}
+
+/* ── Chat messages ───────────────────────────────────── */
+.chat{
+  flex:1;overflow-y:auto;padding:8px 0 16px;
+  scrollbar-width:thin;scrollbar-color:var(--steel) transparent;
+}
+.msg{
+  display:flex;gap:12px;margin-bottom:16px;
+  animation:slide-up .35s cubic-bezier(.22,1,.36,1);
+  max-width:100%;
+}
+@keyframes slide-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+
+/* Avatars */
+.av{
+  width:42px;height:42px;flex-shrink:0;display:flex;
+  align-items:center;justify-content:center;font-size:.8rem;
+  font-family:var(--mono);font-weight:700;
+}
+.av.ai{
+  background:var(--yellow);color:var(--concrete);
+  clip-path:polygon(0 0, 100% 0, 100% 75%, 75% 100%, 0 100%);
+}
+.av.me{
+  background:var(--blue);color:#fff;
+  clip-path:polygon(0 0, 100% 0, 100% 100%, 25% 100%, 0 75%);
+}
+
+/* Bubbles */
+.bub{
+  background:var(--concrete-light);border:1px solid var(--steel);
+  padding:14px 18px;max-width:80%;line-height:1.8;
+  font-size:.92rem;position:relative;
+}
+.msg.user .bub{
+  background:rgba(74,144,217,0.08);border-color:rgba(74,144,217,0.2);
+}
+.bub .search-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  font-family:var(--mono);font-size:.68rem;
+  color:var(--green);background:rgba(46,204,113,0.08);
+  padding:2px 8px;margin-bottom:8px;letter-spacing:1px;
+  border:1px solid rgba(46,204,113,0.2);
+}
+
+/* ── Input bar ───────────────────────────────────────── */
+.input-bar{
+  display:flex;gap:0;border:1px solid var(--steel);
+  background:var(--concrete-light);margin-top:8px;
+}
+.input-bar input{
+  flex:1;background:transparent;border:none;
+  padding:14px 18px;color:var(--text-bright);
+  font-family:var(--sans);font-size:.92rem;outline:none;
+}
+.input-bar input::placeholder{color:var(--text-dim)}
+.send-btn{
+  background:var(--yellow);color:var(--concrete);border:none;
+  padding:14px 24px;font-family:var(--mono);font-size:.8rem;
+  font-weight:700;letter-spacing:2px;cursor:pointer;
+  transition:background .15s;text-transform:uppercase;
+}
+.send-btn:hover{background:var(--safety)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── Quick chips ─────────────────────────────────────── */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.chip{
+  background:var(--steel);border:1px solid rgba(245,166,35,0.15);
+  padding:8px 14px;font-size:.8rem;color:var(--text-dim);
+  cursor:pointer;transition:all .2s;font-family:var(--sans);
+}
+.chip:hover{
+  border-color:var(--yellow);color:var(--yellow);
+  background:rgba(245,166,35,0.06);
+}
+
+/* ── Loading indicator ───────────────────────────────── */
+.ld{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;color:var(--text-dim);
+  font-family:var(--mono);font-size:.8rem;
+}
+.ld .bars{display:flex;gap:3px;align-items:end;height:16px}
+.ld .bars span{
+  width:3px;background:var(--yellow);
+  animation:bar-bounce .8s infinite ease-in-out;
+}
+.ld .bars span:nth-child(1){animation-delay:0s;height:8px}
+.ld .bars span:nth-child(2){animation-delay:.15s;height:14px}
+.ld .bars span:nth-child(3){animation-delay:.3s;height:10px}
+.ld .bars span:nth-child(4){animation-delay:.45s;height:16px}
+@keyframes bar-bounce{
+  0%,100%{transform:scaleY(.5);opacity:.4}
+  50%{transform:scaleY(1);opacity:1}
+}
+
+/* ── Assessment Quiz ─────────────────────────────────── */
+.quiz-card{
+  background:var(--concrete-light);border:1px solid var(--steel);
+  padding:20px;margin:12px 0;
+  animation:slide-up .4s cubic-bezier(.22,1,.36,1);
+}
+.quiz-card h3{
+  font-family:var(--mono);font-size:.78rem;color:var(--yellow);
+  letter-spacing:2px;margin-bottom:14px;text-transform:uppercase;
+}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{
+  display:flex;align-items:center;gap:14px;
+  background:rgba(255,255,255,.015);border:1px solid var(--steel);
+  padding:14px 16px;cursor:pointer;transition:all .2s;
+  font-size:.9rem;color:var(--text);width:100%;text-align:left;
+  font-family:var(--sans);
+}
+.opt:hover:not(.disabled){
+  border-color:var(--yellow);background:rgba(245,166,35,0.04);
+  transform:translateX(6px);
+}
+.opt .ltr{
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:700;font-size:.8rem;
+  background:var(--steel);color:var(--text-dim);flex-shrink:0;
+  transition:all .2s;
+}
+.opt:hover:not(.disabled) .ltr{background:var(--yellow);color:var(--concrete)}
+.opt.selected{border-color:var(--yellow);background:rgba(245,166,35,0.06)}
+.opt.selected .ltr{background:var(--yellow);color:var(--concrete)}
+.opt.disabled{cursor:default;opacity:.5}
+
+/* ── Recommendations ─────────────────────────────────── */
+.rec-grid{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.rec-card{
+  background:var(--concrete-light);border:1px solid var(--yellow);
+  padding:16px;position:relative;overflow:hidden;
+}
+.rec-card::before{
+  content:'';position:absolute;top:0;left:0;width:4px;height:100%;
+  background:var(--yellow);
+}
+.rec-card .rec-major{
+  font-weight:900;font-size:1.05rem;color:var(--text-bright);
+  margin-bottom:6px;
+}
+.rec-card .rec-reason{
+  font-size:.85rem;color:var(--text);line-height:1.6;
+}
+.rec-card .rec-score{
+  position:absolute;top:12px;right:16px;
+  font-family:var(--mono);font-size:1.4rem;font-weight:700;
+  color:var(--yellow);
+}
+
+/* ── Stats bar ───────────────────────────────────────── */
+.stats{
+  display:flex;gap:24px;padding:12px 0;
+  font-family:var(--mono);font-size:.75rem;
+}
+.stats .s{display:flex;flex-direction:column;gap:2px}
+.stats .s .l{color:var(--text-dim);letter-spacing:2px;text-transform:uppercase}
+.stats .s .v{font-size:1.2rem;font-weight:700;color:var(--yellow)}
+
+/* ── Progress dots ───────────────────────────────────── */
+.prog{display:flex;gap:6px;margin:10px 0}
+.pd{
+  width:24px;height:3px;background:var(--steel);
+  transition:all .3s;
+}
+.pd.on{background:var(--yellow);width:32px}
+.pd.done{background:var(--green)}
+.pd.done.bad{background:var(--red)}
+
+/* ── Knowledge / Data panel ──────────────────────────── */
+.data-search{
+  display:flex;gap:0;border:1px solid var(--steel);
+  background:var(--concrete-light);margin-bottom:16px;
+}
+.data-search input{
+  flex:1;background:transparent;border:none;
+  padding:12px 16px;color:var(--text-bright);
+  font-family:var(--sans);font-size:.9rem;outline:none;
+}
+.data-search button{
+  background:var(--yellow);color:var(--concrete);border:none;
+  padding:12px 20px;font-family:var(--mono);font-size:.75rem;
+  font-weight:700;cursor:pointer;letter-spacing:1px;
+}
+
+.data-section{
+  margin-bottom:20px;border:1px solid var(--steel);
+  background:var(--concrete-light);
+}
+.data-section .ds-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;border-bottom:1px solid var(--steel);
+  cursor:pointer;transition:background .15s;
+}
+.data-section .ds-head:hover{background:rgba(255,255,255,.02)}
+.data-section .ds-head h4{
+  font-family:var(--mono);font-size:.8rem;color:var(--yellow);
+  letter-spacing:2px;
+}
+.data-section .ds-head .arrow{
+  color:var(--text-dim);transition:transform .2s;font-size:.8rem;
+}
+.data-section.open .ds-head .arrow{transform:rotate(180deg)}
+.data-body{
+  display:none;padding:0;
+}
+.data-section.open .data-body{display:block}
+
+.dtbl{width:100%;border-collapse:collapse;font-size:.82rem}
+.dtbl th{
+  text-align:left;padding:10px 12px;font-family:var(--mono);
+  font-size:.7rem;color:var(--text-dim);letter-spacing:1px;
+  text-transform:uppercase;border-bottom:1px solid var(--steel);
+  background:rgba(0,0,0,.15);position:sticky;top:0;
+}
+.dtbl td{
+  padding:10px 12px;border-bottom:1px solid rgba(46,46,52,.5);
+  color:var(--text);vertical-align:top;
+}
+.dtbl tr:hover td{background:rgba(245,166,35,0.03)}
+.dtbl .major-name{font-weight:700;color:var(--text-bright)}
+.dtbl .warn{color:var(--red);font-weight:700}
+.dtbl .good{color:var(--green)}
+.dtbl .note{
+  font-size:.78rem;color:var(--text-dim);line-height:1.5;
+  max-width:280px;
+}
+
+.warn-box{
+  background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.3);
+  border-left:3px solid var(--red);
+  padding:14px 16px;margin-bottom:16px;
+}
+.warn-box h4{color:var(--red);font-family:var(--mono);font-size:.8rem;letter-spacing:2px;margin-bottom:6px}
+.warn-box p{font-size:.85rem;line-height:1.6}
+
+/* ── Footer ──────────────────────────────────────────── */
+.footer{
+  text-align:center;padding:32px 0 12px;
+  font-family:var(--mono);font-size:.65rem;
+  color:var(--text-dim);letter-spacing:2px;
+}
+.footer a{color:var(--yellow);text-decoration:none}
+.footer a:hover{text-decoration:underline}
+
+/* ── Toast ───────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--concrete-light);border:1px solid var(--yellow);
+  padding:10px 20px;font-family:var(--mono);font-size:.82rem;
+  z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.5);
+  animation:toast-in .3s;
+}
+@keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(16px)}}
+
+/* ── Markdown content inside bubbles ──────────────────── */
+.md-content p{margin:0 0 8px;line-height:1.8}
+.md-content p:last-child{margin-bottom:0}
+.md-content .md-h3{
+  font-family:var(--mono);font-size:.78rem;color:var(--yellow);
+  letter-spacing:2px;margin:14px 0 8px;text-transform:uppercase;
+  border-bottom:1px solid var(--steel);padding-bottom:6px;
+}
+.md-content .md-hr{
+  border:none;border-top:1px solid var(--steel);margin:12px 0;
+}
+.md-content .md-li{
+  padding:3px 0 3px 12px;line-height:1.7;
+}
+.md-content .md-oli{
+  padding:3px 0 3px 8px;line-height:1.7;
+}
+.md-content .md-oli .md-num{
+  font-family:var(--mono);color:var(--yellow);font-weight:700;
+  margin-right:8px;font-size:.85rem;
+}
+.md-content .md-tbl{
+  width:100%;border-collapse:collapse;margin:10px 0;
+  font-size:.82rem;
+}
+.md-content .md-tbl th{
+  text-align:left;padding:8px 10px;font-family:var(--mono);
+  font-size:.7rem;color:var(--yellow);letter-spacing:1px;
+  text-transform:uppercase;border-bottom:2px solid var(--steel);
+  background:rgba(0,0,0,.2);
+}
+.md-content .md-tbl td{
+  padding:7px 10px;border-bottom:1px solid rgba(46,46,52,.5);
+  color:var(--text);vertical-align:top;
+}
+.md-content .md-tbl tr:hover td{background:rgba(245,166,35,0.03)}
+
+/* ── Welcome splash ─────────────────────────────────── */
+.splash{
+  position:fixed;inset:0;z-index:10000;
+  background:var(--concrete);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .6s,visibility .6s;
+}
+.splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.splash h2{
+  font-size:2.4rem;font-weight:900;color:var(--text-bright);
+  margin-bottom:8px;letter-spacing:4px;
+}
+.splash h2 span{color:var(--yellow)}
+.splash .tagline{
+  font-family:var(--mono);font-size:.75rem;color:var(--text-dim);
+  letter-spacing:3px;margin-bottom:32px;
+}
+.splash .features{
+  display:flex;gap:24px;margin-bottom:40px;flex-wrap:wrap;justify-content:center;
+}
+.splash .feat{
+  text-align:center;padding:16px 20px;
+  border:1px solid var(--steel);background:var(--concrete-light);
+  min-width:160px;
+}
+.splash .feat .icon{font-size:1.6rem;margin-bottom:6px}
+.splash .feat .label{
+  font-family:var(--mono);font-size:.7rem;color:var(--yellow);
+  letter-spacing:1px;
+}
+.splash .feat .desc{font-size:.8rem;color:var(--text-dim);margin-top:4px}
+.splash .enter-btn{
+  background:var(--yellow);color:var(--concrete);border:none;
+  padding:16px 48px;font-family:var(--mono);font-size:.9rem;
+  font-weight:700;letter-spacing:3px;cursor:pointer;
+  transition:all .2s;text-transform:uppercase;
+}
+.splash .enter-btn:hover{background:var(--safety);transform:translateY(-2px)}
+.splash .footer-note{
+  margin-top:24px;font-size:.7rem;color:var(--text-dim);
+  font-family:var(--mono);letter-spacing:1px;
+}
+
+/* ── Share button ────────────────────────────────────── */
+.share-btn{
+  position:fixed;bottom:20px;right:20px;z-index:100;
+  background:var(--steel);border:1px solid var(--yellow);
+  color:var(--yellow);padding:10px 16px;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:1px;
+  cursor:pointer;transition:all .2s;
+}
+.share-btn:hover{background:var(--yellow);color:var(--concrete)}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media(max-width:600px){
+  .header h1{font-size:1.8rem;letter-spacing:2px}
+  .app{padding:0 12px 32px}
+  .bub{max-width:92%;padding:12px 14px}
+  .tab{font-size:.7rem;letter-spacing:1px;padding:12px 0}
+  .splash h2{font-size:1.8rem}
+  .splash .features{gap:12px}
+  .splash .feat{min-width:120px;padding:12px}
+  .share-btn{bottom:12px;right:12px;padding:8px 12px}
+  .dtbl{font-size:.75rem}
+  .dtbl th,.dtbl td{padding:8px 8px}
+  .stats{gap:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- Welcome Splash -->
+<div class="splash" id="splash">
+  <h2>张<span>雪峰</span>说</h2>
+  <div class="tagline">SYS://INTELLIGENT-CAREER-ADVISOR</div>
+  <div class="features">
+    <div class="feat">
+      <div class="icon"></div>
+      <div class="label">百科问答</div>
+      <div class="desc">联网搜索最新数据</div>
+    </div>
+    <div class="feat">
+      <div class="icon"></div>
+      <div class="label">职业测评</div>
+      <div class="desc">8题找到你的方向</div>
+    </div>
+    <div class="feat">
+      <div class="icon"></div>
+      <div class="label">专业数据库</div>
+      <div class="desc">9大类 38+专业</div>
+    </div>
+  </div>
+  <button class="enter-btn" onclick="enterApp()">ENTER SYSTEM</button>
+  <div class="footer-note">基于张雪峰5大心智模型 · 联网实时搜索 · AI驱动分析</div>
+</div>
+
+<!-- Share Button -->
+<button class="share-btn" onclick="shareApp()" id="shareBtn" style="display:none">SHARE</button>
+<div class="grain"></div>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="tag">SYS://ZHANG-XUEFENG-V2 <span style="opacity:.4">// 智能志愿百科</span></div>
+    <h1>张<span>雪峰</span>说</h1>
+    <div class="sub">// 选择比努力更重要，但"有得选"的前提是你足够努力。</div>
+    <div class="quote">
+      「社会就是一个大筛子，用学历筛孩子，用房子筛父母，用工作筛家庭。」
+      <span style="display:block;margin-top:4px;font-style:normal;font-size:.78rem;color:var(--text-dim)">—— 张雪峰，黑龙江齐齐哈尔人，考研名师，全网4000万粉丝</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('chat')" id="tabChat">百科问答</div>
+    <div class="tab" onclick="switchTab('assess')" id="tabAssess">职业测评</div>
+    <div class="tab" onclick="switchTab('data')" id="tabData">专业数据库</div>
+  </div>
+
+  <!-- ═══ CHAT PANEL ═══ -->
+  <div class="panel active" id="panelChat">
+    <div class="chat" id="chatBox">
+      <div class="msg">
+        <div class="av ai">峰</div>
+        <div class="bub">
+          我跟你说，这个系统<strong>不是闹着玩的</strong>。联网搜索最新数据，张雪峰框架帮你分析。
+          <br><br>
+          高考志愿、考研规划、就业方向——你随便问，我给你<strong>掰扯明白</strong>。
+          <br><br>
+          <span style="color:var(--text-dim);font-size:.8rem">试试下面的问题，或者直接输入 ↓</span>
+        </div>
+      </div>
+      <div class="chips" id="chatChips">
+        <span class="chip" onclick="askQuick(this)">计算机专业就业前景怎么样？</span>
+        <span class="chip" onclick="askQuick(this)">双非考研985值不值？</span>
+        <span class="chip" onclick="askQuick(this)">生化环材真的很坑吗？</span>
+        <span class="chip" onclick="askQuick(this)">文科生选什么专业好就业？</span>
+        <span class="chip" onclick="askQuick(this)">考公还是考研？</span>
+        <span class="chip" onclick="askQuick(this)">AI会取代哪些岗位？</span>
+        <span class="chip" onclick="askQuick(this)">金融专业还值得学吗？</span>
+        <span class="chip" onclick="askQuick(this)">临床医学5年还是8年制？</span>
+      </div>
+    </div>
+    <div class="input-bar">
+      <input type="text" id="chatInput" placeholder="问张雪峰任何关于高考/考研/就业的问题..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="send-btn" id="chatSend" onclick="sendChat()">SEND</button>
+    </div>
+  </div>
+
+  <!-- ═══ ASSESSMENT PANEL ═══ -->
+  <div class="panel" id="panelAssess">
+    <div class="stats" id="assessStats" style="display:none">
+      <div class="s"><span class="l">ROUND</span><span class="v" id="aRound">1/8</span></div>
+      <div class="s"><span class="l">进度</span><span class="v" id="aProg">0%</span></div>
+    </div>
+    <div class="prog" id="aDots" style="display:none"></div>
+    <div class="chat" id="assessChat">
+      <div class="msg">
+        <div class="av ai">峰</div>
+        <div class="bub">
+          来，做一套<strong>职业倾向测评</strong>。不是考你知道多少，是帮你<strong>找到方向</strong>。
+          <br><br>
+          8个问题，涵盖兴趣/擅长/家庭/城市偏好。选个主题开干：
+        </div>
+      </div>
+      <div class="chips">
+        <span class="chip" onclick="startAssess('')">开始测评</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ DATA PANEL ═══ -->
+  <div class="panel" id="panelData">
+    <div class="data-search">
+      <input type="text" id="dataInput" placeholder="搜索专业名称，如：计算机、金融、临床..." onkeydown="if(event.key==='Enter')searchData()">
+      <button onclick="searchData()">SEARCH</button>
+    </div>
+    <div id="dataContent">
+      <div style="text-align:center;padding:40px;color:var(--text-dim);font-family:var(--mono);font-size:.8rem">
+        LOADING DATABASE...
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    POWERED BY <a href="https://github.com/alchaincyf/zhangxuefeng-skill" target="_blank">ZHANGXUEFENG.SKILL</a> · CLAUDE CODE · ANTHROPIC SDK
+  </div>
+</div>
+
+<script>
+// ── State ───────────────────────────────────────────
+let chatHist = [], assessHist = [];
+let aRound = 0, aTotal = 8;
+let dbLoaded = false, dbData = null;
+
+// ── Tab ─────────────────────────────────────────────
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+  document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('active');
+  document.getElementById('panel' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('active');
+  if (t === 'data' && !dbLoaded) loadData();
+}
+
+// ── API ─────────────────────────────────────────────
+async function api(url, body) {
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  return r.json();
+}
+
+// ── Chat ────────────────────────────────────────────
+async function sendChat() {
+  const inp = document.getElementById('chatInput');
+  const msg = inp.value.trim(); if (!msg) return;
+  inp.value = '';
+  const chips = document.getElementById('chatChips');
+  if (chips) chips.style.display = 'none';
+  addMsg(msg, 'user', 'chatBox');
+  const ld = addLd('chatBox');
+  try {
+    const r = await api('/api/search', {message:msg, history:chatHist});
+    ld.remove();
+    if (!r.success) throw new Error(r.error);
+    chatHist = r.history;
+    addMsg(r.reply, 'ai', 'chatBox', r.searched);
+  } catch(e) {
+    ld.remove();
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+      addMsg('网络连接失败，请检查后端服务是否启动。如果是在本地运行，请确保 `python app.py` 正在执行。', 'ai', 'chatBox');
+    } else {
+      addMsg('出了点问题: '+e.message, 'ai', 'chatBox');
+    }
+  }
+}
+function askQuick(el) { document.getElementById('chatInput').value = el.textContent; sendChat(); }
+
+// ── Markdown → HTML renderer ──────────────────────────
+function md2html(text) {
+  if (!text) return '';
+  let html = text;
+
+  // 1. 提取并保护 markdown 表格（先处理，避免被其他规则破坏）
+  const tables = [];
+  html = html.replace(/(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)+)/g, (match) => {
+    const idx = tables.length;
+    tables.push(mdTable(match));
+    return `%%TABLE${idx}%%`;
+  });
+
+  // 2. 标题 ### → <h3>
+  html = html.replace(/^### (.+)$/gm, '<h3 class="md-h3">$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h3 class="md-h3">$1</h3>');
+
+  // 3. 水平线 --- → <hr>
+  html = html.replace(/^---+$/gm, '<hr class="md-hr">');
+
+  // 4. 粗体 **text** → <strong>
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+  // 5. 有序列表 1. 2. → <ol>
+  html = html.replace(/^(\d+)\. (.+)$/gm, '<div class="md-oli"><span class="md-num">$1.</span>$2</div>');
+
+  // 6. 无序列表 - item → <div>
+  html = html.replace(/^- (.+)$/gm, '<div class="md-li">• $1</div>');
+
+  // 7. 换行
+  html = html.replace(/\n\n/g, '</p><p>');
+  html = html.replace(/\n/g, '<br>');
+
+  // 8. 恢复表格
+  tables.forEach((t, i) => {
+    html = html.replace(`%%TABLE${i}%%`, t);
+  });
+
+  return '<p>' + html + '</p>';
+}
+
+function mdTable(md) {
+  const rows = md.trim().split('\n').filter(r => r.trim());
+  if (rows.length < 2) return md;
+  // 跳过分隔行 rows[1]
+  const headers = rows[0].split('|').filter(c => c.trim()).map(c => c.trim());
+  const dataRows = rows.slice(2);
+  let html = '<table class="md-tbl">';
+  html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  dataRows.forEach(r => {
+    const cols = r.split('|').filter(c => c.trim()).map(c => c.trim());
+    html += '<tr>' + cols.map(c => `<td>${c}</td>`).join('') + '</tr>';
+  });
+  html += '</table>';
+  return html;
+}
+
+function addMsg(text, who, boxId, searched) {
+  const box = document.getElementById(boxId);
+  const d = document.createElement('div');
+  d.className = 'msg' + (who === 'user' ? ' user' : '');
+  const av = who === 'user' ? '<div class="av me">YOU</div>' : '<div class="av ai">峰</div>';
+  const tag = searched ? '<div class="search-tag">▮ NETWORK SEARCH</div>' : '';
+  const rendered = who === 'user' ? text.replace(/\n/g, '<br>') : md2html(text);
+  d.innerHTML = `${av}<div class="bub md-content">${tag}${rendered}</div>`;
+  box.appendChild(d);
+  d.scrollIntoView({behavior:'smooth', block:'end'});
+}
+
+function addLd(boxId) {
+  const box = document.getElementById(boxId);
+  const d = document.createElement('div');
+  d.className = 'ld';
+  d.innerHTML = '<div class="av ai" style="width:30px;height:30px;font-size:.65rem">峰</div> <div class="bars"><span></span><span></span><span></span><span></span></div> 搜索分析中';
+  box.appendChild(d);
+  d.scrollIntoView({behavior:'smooth', block:'end'});
+  return d;
+}
+
+// ── Assessment ──────────────────────────────────────
+async function startAssess() {
+  const ld = addLd('assessChat');
+  try {
+    const r = await api('/api/assessment/start', {});
+    ld.remove();
+    if (!r.success) throw new Error(r.error);
+    assessHist = r.history;
+    const d = r.data;
+    aRound = d.round || 1; aTotal = d.total_rounds || 8;
+    document.getElementById('assessStats').style.display = 'flex';
+    initDots();
+    updateAssessUI();
+    if (d.comment) addMsg(d.comment, 'ai', 'assessChat');
+    if (d.question) showQuizCard(d);
+  } catch(e) { ld.remove(); addMsg('出错: '+e.message, 'ai', 'assessChat'); }
+}
+
+function showQuizCard(data) {
+  const box = document.getElementById('assessChat');
+  const card = document.createElement('div');
+  card.className = 'quiz-card'; card.id = 'qCard';
+  let opts = '';
+  (data.options||[]).forEach((o,i) => {
+    opts += `<button class="opt" onclick="pickOpt(this,'${('ABCD')[i]}')" data-i="${i}"><span class="ltr">${('ABCD')[i]}</span><span>${o}</span></button>`;
+  });
+  card.innerHTML = `<h3>QUESTION ${data.round||aRound} / ${data.total_rounds||aTotal}</h3><div class="opts">${opts}</div>`;
+  box.appendChild(card);
+  card.scrollIntoView({behavior:'smooth', block:'end'});
+}
+
+async function pickOpt(btn, letter) {
+  if (btn.classList.contains('disabled')) return;
+  btn.classList.add('selected');
+  document.querySelectorAll('#qCard .opt').forEach(b => b.classList.add('disabled'));
+
+  const dots = document.querySelectorAll('.pd');
+  if (dots[aRound-1]) dots[aRound-1].classList.add('done');
+
+  const ld = addLd('assessChat');
+  try {
+    const r = await api('/api/assessment/answer', {answer:'选择了 '+letter, history:assessHist, round:aRound});
+    ld.remove();
+    if (!r.success) throw new Error(r.error);
+    assessHist = r.history;
+    const d = r.data;
+    aRound = d.round || aRound+1;
+    updateAssessUI();
+
+    if (d.game_over) {
+      if (d.comment) addMsg(d.comment, 'ai', 'assessChat');
+      showRecommendations(d.recommendations || [], d.final_message);
+    } else {
+      if (d.comment) addMsg(d.comment, 'ai', 'assessChat');
+      if (d.question) setTimeout(() => showQuizCard(d), 400);
+    }
+  } catch(e) { ld.remove(); addMsg('出错: '+e.message, 'ai', 'assessChat'); }
+}
+
+function showRecommendations(recs, finalMsg) {
+  const box = document.getElementById('assessChat');
+  const wrap = document.createElement('div');
+  wrap.style.animation = 'slide-up .5s cubic-bezier(.22,1,.36,1)';
+  let html = '';
+  if (finalMsg) html += `<div class="bub" style="margin-bottom:12px">${finalMsg}</div>`;
+  html += '<div class="rec-grid">';
+  (recs||[]).forEach(r => {
+    html += `<div class="rec-card"><div class="rec-score">${r.score||'?'}/10</div><div class="rec-major">${r.major||''}</div><div class="rec-reason">${r.reason||''}</div></div>`;
+  });
+  html += '</div>';
+  html += '<br><button class="send-btn" onclick="location.reload()" style="width:100%">RESTART</button>';
+  wrap.innerHTML = html;
+  box.appendChild(wrap);
+  wrap.scrollIntoView({behavior:'smooth', block:'end'});
+  document.querySelectorAll('.pd').forEach(d => d.classList.add('done'));
+}
+
+function initDots() {
+  const p = document.getElementById('aDots');
+  p.innerHTML = ''; p.style.display = 'flex';
+  for (let i=0;i<aTotal;i++) { const d=document.createElement('div'); d.className='pd'+(i===0?' on':''); p.appendChild(d); }
+}
+function updateAssessUI() {
+  document.getElementById('aRound').textContent = aRound+'/'+aTotal;
+  document.getElementById('aProg').textContent = Math.round(aRound/aTotal*100)+'%';
+  document.querySelectorAll('.pd').forEach((d,i) => { d.classList.remove('on'); if(i===aRound) d.classList.add('on'); });
+}
+
+// ── Data ────────────────────────────────────────────
+async function loadData() {
+  try {
+    const r = await fetch('/api/knowledge').then(x=>x.json());
+    if (!r.success) return;
+    dbData = r.data; dbLoaded = true;
+    renderData(dbData);
+  } catch(e) {
+    document.getElementById('dataContent').innerHTML = '<p style="color:var(--red)">LOAD ERROR</p>';
+  }
+}
+
+function renderData(kb) {
+  const el = document.getElementById('dataContent');
+  let html = '';
+
+  // 天坑警示
+  const warn = kb['天坑专业警示'];
+  if (warn) {
+    html += `<div class="warn-box"><h4>⚠ WARNING — 天坑专业</h4><p><strong>${warn.list.join(' / ')}</strong><br>${warn.reason}</p></div>`;
+  }
+
+  // 分类展示
+  const cats = kb.categories || {};
+  for (const [catName, cat] of Object.entries(cats)) {
+    html += `<div class="data-section" id="sec-${catName}">`;
+    html += `<div class="ds-head" onclick="this.parentElement.classList.toggle('open')"><h4>${catName}</h4><span class="arrow">▼</span></div>`;
+    html += '<div class="data-body"><table class="dtbl"><tr><th>专业</th><th>就业率</th><th>月薪</th><th>考研</th><th>对口率</th><th>城市</th><th>点评</th></tr>';
+    for (const [subName, sub] of Object.entries(cat)) {
+      for (const [major, info] of Object.entries(sub)) {
+        const rate = parseFloat(info['就业率']) || 0;
+        const rateCls = rate >= 90 ? 'good' : rate < 80 ? 'warn' : '';
+        html += `<tr>
+          <td class="major-name">${major}</td>
+          <td class="${rateCls}">${info['就业率']||'-'}</td>
+          <td>${info['月薪中位数']||'-'}</td>
+          <td>${info['考研比例']||'-'}</td>
+          <td>${info['对口率']||'-'}</td>
+          <td style="font-size:.75rem">${info['推荐城市']||'-'}</td>
+          <td class="note">${info['点评']||'-'}</td>
+        </tr>`;
+      }
+    }
+    html += '</table></div></div>';
+  }
+
+  // 考研热门
+  const kaoyan = kb['考研热门方向'];
+  if (kaoyan) {
+    html += '<div class="data-section"><div class="ds-head" onclick="this.parentElement.classList.toggle(\'open\')"><h4>考研热门方向</h4><span class="arrow">▼</span></div><div class="data-body"><table class="dtbl"><tr><th>方向</th><th>难度</th><th>分数线</th><th>点评</th></tr>';
+    for (const [k,v] of Object.entries(kaoyan)) {
+      html += `<tr><td class="major-name">${k}</td><td>${v['难度']||'-'}</td><td>${v['分数线']||'-'}</td><td class="note">${v['点评']||'-'}</td></tr>`;
+    }
+    html += '</table></div></div>';
+  }
+
+  el.innerHTML = html;
+}
+
+async function searchData() {
+  const kw = document.getElementById('dataInput').value.trim();
+  if (!kw) { if (dbData) renderData(dbData); return; }
+  try {
+    const r = await api('/api/knowledge/search', {keyword: kw});
+    if (!r.success || r.count === 0) {
+      document.getElementById('dataContent').innerHTML = `<div style="padding:32px;text-align:center;color:var(--text-dim);font-family:var(--mono)">NO RESULTS FOR "${kw}"</div>`;
+      return;
+    }
+    // Render filtered results
+    let html = `<div style="padding:8px 0;font-family:var(--mono);font-size:.75rem;color:var(--text-dim)">FOUND ${r.count} RESULTS</div>`;
+    html += '<div class="data-section open"><div class="data-body" style="display:block"><table class="dtbl"><tr><th>分类</th><th>专业</th><th>就业率</th><th>月薪</th><th>考研</th><th>点评</th></tr>';
+    r.results.forEach(x => {
+      const rate = parseFloat(x['就业率']) || 0;
+      const rc = rate >= 90 ? 'good' : rate < 80 ? 'warn' : '';
+      html += `<tr><td style="font-size:.75rem;color:var(--text-dim)">${x.category}/${x.subcategory}</td><td class="major-name">${x.major}</td><td class="${rc}">${x['就业率']||'-'}</td><td>${x['月薪中位数']||'-'}</td><td>${x['考研比例']||'-'}</td><td class="note">${x['点评']||'-'}</td></tr>`;
+    });
+    html += '</table></div></div>';
+    html += `<div class="chips"><span class="chip" onclick="document.getElementById('dataInput').value='';searchData()">清除搜索</span></div>`;
+    document.getElementById('dataContent').innerHTML = html;
+  } catch(e) { toast('SEARCH ERROR'); }
+}
+
+// ── Toast ───────────────────────────────────────────
+function toast(msg) {
+  const old = document.querySelector('.toast'); if (old) old.remove();
+  const t = document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
+}
+
+// ── Splash & Share ──────────────────────────────────
+function enterApp() {
+  document.getElementById('splash').classList.add('hide');
+  document.getElementById('shareBtn').style.display = 'block';
+  setTimeout(() => document.getElementById('chatInput').focus(), 400);
+}
+
+function shareApp() {
+  const url = window.location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => toast('链接已复制'));
+  } else {
+    const input = document.createElement('input');
+    input.value = url; document.body.appendChild(input);
+    input.select(); document.execCommand('copy');
+    document.body.removeChild(input);
+    toast('链接已复制');
+  }
+}
+
+// ── Focus ───────────────────────────────────────────
+document.getElementById('chatInput').focus();
+</script>
+</body>
+</html>
