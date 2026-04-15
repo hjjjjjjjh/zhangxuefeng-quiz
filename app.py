@@ -562,11 +562,34 @@ def health():
 
 
 if __name__ == "__main__":
+    import webbrowser
+    import threading
     port = int(os.environ.get("PORT", 5000))
+
+    # 环境检查
+    api_key = os.environ.get("ANTHROPIC_AUTH_TOKEN") or os.environ.get("ANTHROPIC_API_KEY", "")
+    has_key = bool(api_key)
+
     print("=" * 55)
     print("  张雪峰智能志愿百科 v2")
+    print("=" * 55)
     print(f"  模型: {MODEL}")
     print(f"  端口: {port}")
-    print("  功能: 百科问答 + 联网搜索 + 职业倾向测评")
+    print(f"  API Key: {'已配置' if has_key else '未配置（百科问答不可用）'}")
+    print(f"  搜索: DuckDuckGo (免费)")
     print("=" * 55)
+    print()
+    if not has_key:
+        print("  [提示] 未检测到 API Key")
+        print("  百科问答需要 ANTHROPIC_API_KEY 环境变量")
+        print("  专业数据库和测评功能可正常使用")
+        print()
+
+    # 自动打开浏览器
+    def open_browser():
+        import time
+        time.sleep(1.5)
+        webbrowser.open(f"http://localhost:{port}")
+    threading.Thread(target=open_browser, daemon=True).start()
+
     app.run(host="0.0.0.0", port=port, debug=False)
